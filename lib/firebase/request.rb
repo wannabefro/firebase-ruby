@@ -8,60 +8,41 @@ class Firebase
 
     class << self
 
-      def set_uri(uri)
-        @uri = uri
+      def get(path, uri = Firebase.base_uri, auth = Firebase.auth)
+        process(:get, path, uri, auth)
       end
 
-      def reset_uri
-        @uri = nil
+      def put(path, value, uri = Firebase.base_uri, auth = Firebase.auth)
+        process(:put, path, uri, auth, :body => value.to_json)
       end
 
-      def set_auth(auth)
-        @auth = auth
+      def post(path, value, uri = Firebase.base_uri, auth = Firebase.auth)
+        process(:post, path, uri, auth, :body => value.to_json)
       end
 
-      def reset_auth
-        @auth = nil
+      def delete(path, uri = Firebase.base_uri, auth = Firebase.auth)
+        process(:delete, path, uri, auth)
       end
 
-      def get(path)
-        process(:get, path)
+      def patch(path, value, uri = Firebase.base_uri, auth = Firebase.auth)
+        process(:patch, path, uri, auth, :body => value.to_json)
       end
 
-      def put(path, value)
-        process(:put, path, :body => value.to_json)
-      end
-
-      def post(path, value)
-        process(:post, path, :body => value.to_json)
-      end
-
-      def delete(path)
-        process(:delete, path)
-      end
-
-      def patch(path, value)
-        process(:patch, path, :body => value.to_json)
-      end
-
-      def build_url(path)
-        host = @uri || Firebase.base_uri
+      def build_url(path, host = Firebase.base_uri, auth = Firebase.auth)
         path = "#{path}.json"
-        query_string = @auth || Firebase.auth ? "?auth=#{@auth || Firebase.auth}" : ""
+        query_string = auth ? "?auth=#{auth}" : ""
         url = URI.join(host, path, query_string)
-        reset_uri
-        reset_auth
 
         url.to_s
       end
 
       private
 
-      def process(method, path, options={})
-        raise "Please set Firebase.base_uri before making requests" unless Firebase.base_uri || @uri
+      def process(method, path, uri, auth, options={})
+        raise "Please set the base uri before making requests" unless uri
 
 	      @@hydra ||= Typhoeus::Hydra.new
-        request = Typhoeus::Request.new(build_url(path),
+        request = Typhoeus::Request.new(build_url(path, uri, auth),
                                         :body => options[:body],
                                         :method => method)
         @@hydra.queue(request)
