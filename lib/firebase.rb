@@ -54,48 +54,28 @@ class Firebase
   attr_reader :base_uri
 
   def initialize(base_uri = Firebase.base_uri, auth = Firebase.auth)
-    @base_uri = base_uri
+    @base_uri = self.class.format_uri(base_uri || Firebase.base_uri)
     @auth = auth
   end
 
-  def base_uri=(str)
-    @base_uri = Firebase.format_uri(str)
-  end  
-
-  def set_base_uri
-    Firebase::Request.set_uri(@base_uri)
-  end
-
-  def set_auth
-    Firebase::Request.set_auth(@auth)
-  end
-
-  def set_request
-    set_base_uri
-    set_auth
-  end
-
   def set(path, data)
-    set_request
-    Firebase.set(path, data)
+    Firebase::Request.put(path, data, @base_uri, @auth)
   end
 
   def get(path)
-    set_request
-    Firebase.get(path)
+    Firebase::Request.get(path, @base_uri, @auth)
   end
 
   def push(path, data)
-    set_request
-    Firebase.push(path, data)
+    Firebase::Request.post(path, data, @base_uri, @auth)
   end
 
   def delete(path)
-    Firebase.delete(path)
+    Firebase::Request.delete(path, @base_uri, @auth)
   end
 
   def update(path, data)
-    Firebase.update(path, data)
+    Firebase::Request.patch(path, data, @base_uri, @auth)
   end
 
 end
